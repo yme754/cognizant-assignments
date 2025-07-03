@@ -1,0 +1,320 @@
+
+// Exercise 1: Inventory Management System
+
+import java.util.HashMap;
+import java.util.Map;
+
+class InventoryItem {
+    int itemId;
+    String itemName;
+    int quantity;
+    double price;
+
+    InventoryItem(int id, String name, int qty, double price) {
+        this.itemId = id;
+        this.itemName = name;
+        this.quantity = qty;
+        this.price = price;
+    }
+}
+
+public class InventoryManager {
+    Map<Integer, InventoryItem> items = new HashMap<>();
+
+    void addItem(InventoryItem item) {
+        items.put(item.itemId, item);
+    }
+
+    void updateItem(int id, int qty, double price) {
+        if (items.containsKey(id)) {
+            InventoryItem item = items.get(id);
+            item.quantity = qty;
+            item.price = price;
+        }
+    }
+
+    void deleteItem(int id) {
+        items.remove(id);
+    }
+}
+
+
+
+// Exercise 2: E-commerce Platform Search Function
+
+public class ECommerceSearch {
+    // Linear Search Implementation
+    static int linearSearch(EcommProduct[] products, String name) {
+        for (int i = 0; i < products.length; i++) {
+            if (products[i].productName.equals(name)) return i;
+        }
+        return -1;
+    }
+
+    // Binary Search Implementation
+    static int binarySearch(EcommProduct[] products, String name) {
+        int low = 0, high = products.length - 1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            int cmp = products[mid].productName.compareTo(name);
+            if (cmp == 0) return mid;
+            if (cmp < 0) low = mid + 1;
+            else high = mid - 1;
+        }
+        return -1;
+    }
+}
+
+class EcommProduct {
+    int productId;
+    String productName;
+    String category;
+
+    EcommProduct(int id, String name, String cat) {
+        this.productId = id;
+        this.productName = name;
+        this.category = cat;
+    }
+}
+
+
+
+// Exercise 3: Sorting Customer Orders
+
+public class OrderSorting {
+    // Bubble Sort Implementation
+    static void bubbleSort(CustomerOrder[] orders) {
+        int n = orders.length;
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                if (orders[j].totalPrice > orders[j + 1].totalPrice) {
+                    CustomerOrder temp = orders[j];
+                    orders[j] = orders[j + 1];
+                    orders[j + 1] = temp;
+                }
+            }
+        }
+    }
+
+    // Quick Sort Implementation
+    static void quickSort(CustomerOrder[] orders, int low, int high) {
+        if (low < high) {
+            int pi = partition(orders, low, high);
+            quickSort(orders, low, pi - 1);
+            quickSort(orders, pi + 1, high);
+        }
+    }
+
+    private static int partition(CustomerOrder[] orders, int low, int high) {
+        double pivot = orders[high].totalPrice;
+        int i = (low - 1);
+        for (int j = low; j < high; j++) {
+            if (orders[j].totalPrice <= pivot) {
+                i++;
+                CustomerOrder temp = orders[i];
+                orders[i] = orders[j];
+                orders[j] = temp;
+            }
+        }
+        CustomerOrder temp = orders[i + 1];
+        orders[i + 1] = orders[high];
+        orders[high] = temp;
+        return i + 1;
+    }
+}
+
+class CustomerOrder {
+    int orderId;
+    String customerName;
+    double totalPrice;
+
+    CustomerOrder(int id, String name, double price) {
+        this.orderId = id;
+        this.customerName = name;
+        this.totalPrice = price;
+    }
+}
+
+
+
+// Exercise 4: Employee Management System
+
+public class EmployeeManager {
+    private StaffMember[] employees;
+    private int count;
+
+    public EmployeeManager(int size) {
+        employees = new StaffMember[size];
+        count = 0;
+    }
+
+    void addEmployee(StaffMember e) {
+        if (count < employees.length) {
+            employees[count++] = e;
+        }
+    }
+
+    StaffMember searchEmployee(int id) {
+        for (int i = 0; i < count; i++) {
+            if (employees[i].employeeId == id) return employees[i];
+        }
+        return null;
+    }
+
+    void traverseEmployees() {
+        for (int i = 0; i < count; i++) {
+            // In a real app, you'd print details.
+            System.out.println(employees[i].name);
+        }
+    }
+
+    void deleteEmployee(int id) {
+        int foundIndex = -1;
+        for (int i = 0; i < count; i++) {
+            if (employees[i].employeeId == id) {
+                foundIndex = i;
+                break;
+            }
+        }
+        if (foundIndex != -1) {
+            for (int i = foundIndex; i < count - 1; i++) {
+                employees[i] = employees[i + 1];
+            }
+            employees[count - 1] = null;
+            count--;
+        }
+    }
+}
+
+class StaffMember {
+    int employeeId;
+    String name;
+    String position;
+    double salary;
+
+    StaffMember(int id, String name, String pos, double sal) {
+        this.employeeId = id;
+        this.name = name;
+        this.position = pos;
+        this.salary = sal;
+    }
+}
+
+
+
+// Exercise 5: Task Management System
+
+public class TaskManager {
+    private ProjectTask head;
+
+    // Add a task to the end of the list
+    void addTask(ProjectTask t) {
+        if (head == null) {
+            head = t;
+        } else {
+            ProjectTask current = head;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = t;
+        }
+    }
+
+    ProjectTask searchTask(int id) {
+        ProjectTask current = head;
+        while (current != null) {
+            if (current.taskId == id) return current;
+            current = current.next;
+        }
+        return null;
+    }
+
+    void traverseTasks() {
+        ProjectTask current = head;
+        while (current != null) {
+            System.out.println(current.taskName);
+            current = current.next;
+        }
+    }
+
+    void deleteTask(int id) {
+        if (head == null) return;
+        if (head.taskId == id) {
+            head = head.next;
+            return;
+        }
+        ProjectTask current = head;
+        while (current.next != null && current.next.taskId != id) {
+            current = current.next;
+        }
+        if (current.next != null) {
+            current.next = current.next.next;
+        }
+    }
+}
+
+class ProjectTask {
+    int taskId;
+    String taskName;
+    String status;
+    ProjectTask next;
+
+    ProjectTask(int id, String name, String status) {
+        this.taskId = id;
+        this.taskName = name;
+        this.status = status;
+        this.next = null;
+    }
+}
+
+
+
+// Exercise 6: Library Management System
+
+public class LibrarySearch {
+    // Linear Search for a book by title
+    static int findBookLinear(LibraryBook[] books, String title) {
+        for (int i = 0; i < books.length; i++) {
+            if (books[i].title.equalsIgnoreCase(title)) return i;
+        }
+        return -1;
+    }
+
+    // Binary Search for a book by title (assumes books are sorted by title)
+    static int findBookBinary(LibraryBook[] books, String title) {
+        int low = 0, high = books.length - 1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            int cmp = books[mid].title.compareToIgnoreCase(title);
+            if (cmp == 0) return mid;
+            if (cmp < 0) low = mid + 1;
+            else high = mid - 1;
+        }
+        return -1;
+    }
+}
+
+class LibraryBook {
+    int bookId;
+    String title;
+    String author;
+
+    LibraryBook(int id, String title, String author) {
+        this.bookId = id;
+        this.title = title;
+        this.author = author;
+    }
+}
+
+
+
+// Exercise 7: Financial Forecasting
+
+public class FinancialForecaster {
+    static double calculateFutureValue(double currentValue, double growthRate, int years) {
+        if (years == 0) {
+            return currentValue;
+        }
+        return calculateFutureValue(currentValue * (1 + growthRate), growthRate, years - 1);
+    }
+}
