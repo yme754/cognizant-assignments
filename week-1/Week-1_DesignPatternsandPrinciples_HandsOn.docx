@@ -1,0 +1,332 @@
+// Exercise 1: Implementing the Singleton Pattern
+class Logger {
+    private static Logger inst;
+
+    private Logger() {}
+
+    public static Logger getInst() {
+        if (inst == null) {
+            inst = new Logger();
+        }
+        return inst;
+    }
+    
+    public void log(String msg) {
+        System.out.println(msg);
+    }
+}
+
+// Exercise 2: Implementing the Factory Method Pattern
+interface Document {
+    void open();
+}
+
+class WordDoc implements Document {
+    public void open() {
+        System.out.println("Opening Word doc.");
+    }
+}
+
+class PdfDoc implements Document {
+    public void open() {
+        System.out.println("Opening PDF doc.");
+    }
+}
+
+abstract class DocFactory {
+    public abstract Document create();
+}
+
+class WordFac extends DocFactory {
+    public Document create() {
+        return new WordDoc();
+    }
+}
+
+class PdfFac extends DocFactory {
+    public Document create() {
+        return new PdfDoc();
+    }
+}
+
+// Exercise 3: Implementing the Builder Pattern
+class Computer {
+    private final String cpu;
+    private final int ram;
+    private final int hdd;
+
+    private Computer(Builder b) {
+        this.cpu = b.cpu;
+        this.ram = b.ram;
+        this.hdd = b.hdd;
+    }
+
+    public static class Builder {
+        private String cpu;
+        private int ram;
+        private int hdd;
+
+        public Builder cpu(String cpu) {
+            this.cpu = cpu;
+            return this;
+        }
+
+        public Builder ram(int ram) {
+            this.ram = ram;
+            return this;
+        }
+
+        public Builder hdd(int hdd) {
+            this.hdd = hdd;
+            return this;
+        }
+
+        public Computer build() {
+            return new Computer(this);
+        }
+    }
+}
+
+// Exercise 4: Implementing the Adapter Pattern
+interface PaymentProc {
+    void pay(double amt);
+}
+
+class PayPalGW {
+    void sendPayment(double amt) {
+        System.out.println("PayPal payment of " + amt);
+    }
+}
+
+class StripeGW {
+    void charge(double amt) {
+        System.out.println("Stripe charged " + amt);
+    }
+}
+
+class PayPalAdapter implements PaymentProc {
+    private PayPalGW gw = new PayPalGW();
+    public void pay(double amt) {
+        gw.sendPayment(amt);
+    }
+}
+
+class StripeAdapter implements PaymentProc {
+    private StripeGW gw = new StripeGW();
+    public void pay(double amt) {
+        gw.charge(amt);
+    }
+}
+
+// Exercise 5: Implementing the Decorator Pattern
+interface Notifier {
+    void send(String msg);
+}
+
+class EmailNotifier implements Notifier {
+    public void send(String msg) {
+        System.out.println("Email sent: " + msg);
+    }
+}
+
+abstract class NotifierDecorator implements Notifier {
+    protected Notifier notifier;
+    NotifierDecorator(Notifier n) {
+        this.notifier = n;
+    }
+    public void send(String msg) {
+        notifier.send(msg);
+    }
+}
+
+class SMSDecorator extends NotifierDecorator {
+    SMSDecorator(Notifier n) {
+        super(n);
+    }
+    @Override
+    public void send(String msg) {
+        super.send(msg);
+        System.out.println("SMS sent: " + msg);
+    }
+}
+
+// Exercise 6: Implementing the Proxy Pattern
+interface Image {
+    void display();
+}
+
+class RealImage implements Image {
+    private String fname;
+    public RealImage(String fname) {
+        this.fname = fname;
+        System.out.println("Loading " + fname);
+    }
+    public void display() {
+        System.out.println("Displaying " + fname);
+    }
+}
+
+class ProxyImage implements Image {
+    private RealImage realImg;
+    private String fname;
+    public ProxyImage(String fname) {
+        this.fname = fname;
+    }
+    public void display() {
+        if (realImg == null) {
+            realImg = new RealImage(fname);
+        }
+        realImg.display();
+    }
+}
+
+// Exercise 7: Implementing the Observer Pattern
+import java.util.ArrayList;
+import java.util.List;
+
+interface Stock {
+    void add(Observer o);
+    void remove(Observer o);
+    void notifyUsers();
+}
+
+class StockMarket implements Stock {
+    private List<Observer> users = new ArrayList<>();
+    private double price;
+    public void setPrice(double p) {
+        this.price = p;
+        notifyUsers();
+    }
+    public void add(Observer o) {
+        users.add(o);
+    }
+    public void remove(Observer o) {
+        users.remove(o);
+    }
+    public void notifyUsers() {
+        for (Observer o : users) {
+            o.update(price);
+        }
+    }
+}
+
+interface Observer {
+    void update(double price);
+}
+
+class MobileApp implements Observer {
+    public void update(double price) {
+        System.out.println("Mobile App: Price is now " + price);
+    }
+}
+
+class WebApp implements Observer {
+    public void update(double price) {
+        System.out.println("Web App: Price is now " + price);
+    }
+}
+
+// Exercise 8: Implementing the Strategy Pattern
+interface PayStrategy {
+    void pay(int amt);
+}
+
+class CreditCardPay implements PayStrategy {
+    public void pay(int amt) {
+        System.out.println(amt + " paid with credit card.");
+    }
+}
+
+class PayPalPay implements PayStrategy {
+    public void pay(int amt) {
+        System.out.println(amt + " paid with PayPal.");
+    }
+}
+
+class PayContext {
+    private PayStrategy strat;
+    public void setStrategy(PayStrategy s) {
+        this.strat = s;
+    }
+    public void execute(int amt) {
+        strat.pay(amt);
+    }
+}
+
+// Exercise 9: Implementing the Command Pattern
+interface Command {
+    void execute();
+}
+
+class Light {
+    public void on() { System.out.println("Light is ON"); }
+    public void off() { System.out.println("Light is OFF"); }
+}
+
+class LightOnCmd implements Command {
+    private Light light;
+    public LightOnCmd(Light l) { this.light = l; }
+    public void execute() { light.on(); }
+}
+
+class LightOffCmd implements Command {
+    private Light light;
+    public LightOffCmd(Light l) { this.light = l; }
+    public void execute() { light.off(); }
+}
+
+class Remote {
+    private Command cmd;
+    public void setCmd(Command c) { this.cmd = c; }
+    public void pressBtn() { cmd.execute(); }
+}
+
+// Exercise 10: Implementing the MVC Pattern
+class Student {
+    private String name;
+    private int id;
+    public String getName() { return name; }
+    public void setName(String n) { this.name = n; }
+    public int getId() { return id; }
+    public void setId(int i) { this.id = i; }
+}
+
+class StudentView {
+    public void printDetails(String name, int id) {
+        System.out.println("Student: " + name + ", ID: " + id);
+    }
+}
+
+class StudentController {
+    private Student model;
+    private StudentView view;
+    public StudentController(Student m, StudentView v) {
+        this.model = m;
+        this.view = v;
+    }
+    public void setStudentName(String n) { model.setName(n); }
+    public void updateView() {
+        view.printDetails(model.getName(), model.getId());
+    }
+}
+
+// Exercise 11: Implementing Dependency Injection
+interface CustRepo {
+    String find(int id);
+}
+
+class CustRepoImpl implements CustRepo {
+    public String find(int id) {
+        return "Customer " + id;
+    }
+}
+
+class CustService {
+    private CustRepo repo;
+    public CustService(CustRepo r) {
+        this.repo = r;
+    }
+    public String getCust(int id) {
+        return repo.find(id);
+    }
+}
