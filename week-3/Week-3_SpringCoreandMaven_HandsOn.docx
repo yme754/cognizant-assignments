@@ -1,0 +1,56 @@
+// Exercise 1
+
+package com.library.repository;
+
+public class BookRepo {
+    public BookRepo() {
+        System.out.println("BookRepo created");
+    }
+
+    public String status() {
+        return "BookRepo ready.";
+    }
+}
+
+// Exercise 2
+
+package com.library.service;
+
+import com.library.repository.BookRepo;
+
+public class BookSvc {
+    private BookRepo repo;
+
+    public BookSvc() {
+        System.out.println("BookSvc created");
+    }
+
+    public void setRepo(BookRepo repo) {
+        System.out.println("Repo injected");
+        this.repo = repo;
+    }
+
+    public String status() {
+        if (repo != null) return "BookSvc running with " + repo.status();
+        return "BookSvc running (repo not set)";
+    }
+}
+
+// Exercise 4
+
+package com.library;
+
+import com.library.service.BookSvc;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class App {
+    public static void main(String[] args) {
+        System.out.println("--- Starting App ---");
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
+        System.out.println("Spring context loaded");
+        BookSvc svc = ctx.getBean("bookService", BookSvc.class);
+        System.out.println(svc.status());
+        System.out.println("--- App Finished ---");
+    }
+}
