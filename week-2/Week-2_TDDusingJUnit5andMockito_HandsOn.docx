@@ -1,0 +1,75 @@
+// Exercise 1
+
+<dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.13.2</version>
+    <scope>test</scope>
+</dependency>
+
+package com.example;
+
+import org.junit.Test;
+import static org.junit.Assert.assertTrue;
+
+public class FirstTest {
+
+    @Test
+    public void testSetup() {
+        assertTrue(true);
+    }
+}
+
+// Exercise 3
+
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class AssertTest {
+
+    @Test
+    public void checkAssertions() {
+        assertEquals(5, 2 + 3);
+        assertTrue(5 > 3);
+        assertFalse(5 < 3);
+        assertNull(null);
+        assertNotNull(new Object());
+    }
+}
+
+// Exercise 4
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+
+public class AAATest {
+
+    private String msg;
+
+    @Before
+    public void init() {
+        msg = "Arrange-Act-Assert";
+        System.out.println("Setup done.");
+    }
+
+    @After
+    public void clean() {
+        msg = null;
+        System.out.println("Teardown done.");
+    }
+
+    @Test
+    public void checkLength() {
+        int len = msg.length();
+        assertEquals(18, len);
+        System.out.println("Length test passed.");
+    }
+
+    @Test
+    public void checkContent() {
+        assertEquals("Arrange-Act-Assert", msg);
+        System.out.println("Content test passed.");
+    }
+} 
