@@ -1,3 +1,7 @@
+
+                                        // JUNIT_BASIC TESTING EXERCISES
+
+
 // Exercise 1
 
 <dependency>
@@ -71,5 +75,59 @@ public class AAATest {
     public void checkContent() {
         assertEquals("Arrange-Act-Assert", msg);
         System.out.println("Content test passed.");
+    }
+} 
+
+
+
+
+                                        // MOCKITO EXERCISES
+
+
+
+
+
+// Exercise 1
+
+import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+interface ExternalApi {
+    String getData();
+}
+
+class MyService {
+    private ExternalApi api;
+
+    public MyService(ExternalApi api) {
+        this.api = api;
+    }
+
+    public String fetchData() {
+        return api.getData();
+    }
+}
+
+public class MyServiceTest {
+
+    @Test
+    public void testApiMock() {
+        ExternalApi mock = Mockito.mock(ExternalApi.class);
+        when(mock.getData()).thenReturn("Mock Data");
+        MyService svc = new MyService(mock);
+        String res = svc.fetchData();
+        assertEquals("Mock Data", res);
+    }
+
+    // Exercise 2
+
+    @Test
+    public void testApiCallVerify() {
+        ExternalApi mock = Mockito.mock(ExternalApi.class);
+        MyService svc = new MyService(mock);
+        svc.fetchData();
+        verify(mock).getData();
     }
 } 
