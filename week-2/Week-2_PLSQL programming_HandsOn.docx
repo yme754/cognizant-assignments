@@ -1,0 +1,240 @@
+-- Exercise 1: Control Structures
+
+-- Scenario 1: Loan Interest Rate Discount
+DECLARE
+    CURSOR c IS SELECT CustomerID, DOB FROM Customers;
+    id Customers.CustomerID%TYPE;
+    dob Customers.DOB%TYPE;
+    age NUMBER;
+BEGIN
+    FOR r IN c LOOP
+        age := TRUNC(MONTHS_BETWEEN(SYSDATE, r.DOB) / 12);
+        IF age > 60 THEN
+            UPDATE Loans SET InterestRate = InterestRate * 0.99 WHERE CustomerID = r.CustomerID;
+        END IF;
+    END LOOP;
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN ROLLBACK;
+END;
+/
+
+-- Scenario 2: VIP Status Promotion
+DECLARE
+    CURSOR c IS SELECT CustomerID, Balance FROM Customers;
+BEGIN
+    FOR r IN c LOOP
+        IF r.Balance > 10000 THEN
+            NULL;
+        END IF;
+    END LOOP;
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN ROLLBACK;
+END;
+/
+
+-- Scenario 3: Loan Due Reminders
+DECLARE
+    CURSOR c IS
+        SELECT l.LoanID, c.Name, l.EndDate
+        FROM Loans l JOIN Customers c ON l.CustomerID = c.CustomerID
+        WHERE l.EndDate BETWEEN SYSDATE AND SYSDATE + 30;
+BEGIN
+    FOR r IN c LOOP
+        NULL;
+    END LOOP;
+EXCEPTION
+    WHEN OTHERS THEN NULL;
+END;
+/
+
+-- Exercise 3: Stored Procedures
+
+-- Scenario 1: Process Monthly Interest
+CREATE OR REPLACE PROCEDURE ProcMonthlyInterest IS
+BEGIN
+    UPDATE Accounts SET Balance = Balance * 1.01 WHERE AccountType = 'Savings';
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN ROLLBACK;
+END;
+/
+
+-- Scenario 2: Update Employee Bonus
+CREATE OR REPLACE PROCEDURE UpdBonus (
+    dept IN VARCHAR2,
+    pct IN NUMBER
+) IS
+BEGIN
+    UPDATE Employees SET Salary = Salary * (1 + pct / 100) WHERE Department = dept;
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN ROLLBACK;
+END;
+/
+
+-- Scenario 3: Transfer Funds
+CREATE OR REPLACE PROCEDURE TransferFunds (
+    src IN NUMBER,
+    dest IN NUMBER,
+    amt IN NUMBER
+) IS
+    bal NUMBER;
+BEGIN
+    SELECT Balance INTO bal FROM Accounts WHERE AccountID = src;
+    IF bal >= amt THEN
+        UPDATE Accounts SET Balance = Balance - amt WHERE AccountID = src;
+        UPDATE Accounts SET Balance = Balance + amt WHERE AccountID = dest;
+        INSERT INTO Transactions (TransactionID, AccountID, TransactionDate, Amount, TransactionType)
+        VALUES (SEQ_TRANSACTION_ID.NEXTVAL, src, SYSDATE, amt, 'Transfer');
+        COMMIT;
+    ELSE
+        ROLLBACK;
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN ROLLBACK;
+    WHEN OTHERS THEN ROLLBACK;
+END;
+/
+
+-- Exercise 7: Packages
+
+-- Scenario 1: Customer Management Package
+CREATE OR REPLACE PACKAGE CustMan AS
+    PROCEDURE AddCust(id IN NUMBER, name IN VARCHAR2, dob IN DATE, bal IN NUMBER);
+    PROCEDURE UpdCust(id IN NUMBER, name IN VARCHAR2 DEFAULT NULL, bal IN NUMBER DEFAULT NULL);
+    FUNCTION GetBal(id IN NUMBER) RETURN NUMBER;
+END CustMan;
+/
+
+CREATE OR REPLACE PACKAGE BODY CustMan AS
+    PROCEDURE AddCust(id IN NUMBER, name IN VARCHAR2, dob IN DATE, bal IN NUMBER) IS
+        e_dup EXCEPTION;
+        PRAGMA EXCEPTION_INIT(e_dup, -1);
+    BEGIN
+        INSERT INTO Customers (CustomerID, Name, DOB, Balance, LastModified)
+        VALUES (id, name, dob, bal, SYSDATE);
+        COMMIT;
+    EXCEPTION
+        WHEN e_dup THEN ROLLBACK;
+        WHEN OTHERS THEN ROLLBACK;
+    END;
+
+    PROCEDURE UpdCust(id IN NUMBER, name IN VARCHAR2 DEFAULT NULL, bal IN NUMBER DEFAULT NULL) IS
+        rows NUMBER;
+    BEGIN
+        UPDATE Customers
+        SET Name = NVL(name, Name), Balance = NVL(bal, Balance), LastModified = SYSDATE
+        WHERE CustomerID = id;
+        rows := SQL%ROWCOUNT;
+        IF rows = 0 THEN RAISE NO_DATA_FOUND; END IF;
+        COMMIT;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN ROLLBACK;
+        WHEN OTHERS THEN ROLLBACK;
+    END;
+
+    FUNCTION GetBal(id IN NUMBER) RETURN NUMBER IS
+        bal Customers.Balance%TYPE;
+    BEGIN
+        SELECT Balance INTO bal FROM Customers WHERE CustomerID = id;
+        RETURN bal;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN RETURN NULL;
+        WHEN OTHERS THEN RETURN NULL;
+    END;
+END CustMan;
+/
+
+-- Scenario 2: Employee Management Package
+CREATE OR REPLACE PACKAGE EmpMan AS
+    PROCEDURE HireEmp(id IN NUMBER, name IN VARCHAR2, pos IN VARCHAR2, sal IN NUMBER, dept IN VARCHAR2, hire IN DATE);
+    PROCEDURE UpdEmp(id IN NUMBER, pos IN VARCHAR2 DEFAULT NULL, sal IN NUMBER DEFAULT NULL, dept IN VARCHAR2 DEFAULT NULL);
+    FUNCTION AnnSal(id IN NUMBER) RETURN NUMBER;
+END EmpMan;
+/
+
+CREATE OR REPLACE PACKAGE BODY EmpMan AS
+    PROCEDURE HireEmp(id IN NUMBER, name IN VARCHAR2, pos IN VARCHAR2, sal IN NUMBER, dept IN VARCHAR2, hire IN DATE) IS
+        e_dup EXCEPTION;
+        PRAGMA EXCEPTION_INIT(e_dup, -1);
+    BEGIN
+        INSERT INTO Employees (EmployeeID, Name, Position, Salary, Department, HireDate)
+        VALUES (id, name, pos, sal, dept, hire);
+        COMMIT;
+    EXCEPTION
+        WHEN e_dup THEN ROLLBACK;
+        WHEN OTHERS THEN ROLLBACK;
+    END;
+
+    PROCEDURE UpdEmp(id IN NUMBER, pos IN VARCHAR2 DEFAULT NULL, sal IN NUMBER DEFAULT NULL, dept IN VARCHAR2 DEFAULT NULL) IS
+        rows NUMBER;
+    BEGIN
+        UPDATE Employees
+        SET Position = NVL(pos, Position), Salary = NVL(sal, Salary), Department = NVL(dept, Department)
+        WHERE EmployeeID = id;
+        rows := SQL%ROWCOUNT;
+        IF rows = 0 THEN RAISE NO_DATA_FOUND; END IF;
+        COMMIT;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN ROLLBACK;
+        WHEN OTHERS THEN ROLLBACK;
+    END;
+
+    FUNCTION AnnSal(id IN NUMBER) RETURN NUMBER IS
+        sal Employees.Salary%TYPE;
+    BEGIN
+        SELECT Salary INTO sal FROM Employees WHERE EmployeeID = id;
+        RETURN sal * 12;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN RETURN NULL;
+        WHEN OTHERS THEN RETURN NULL;
+    END;
+END EmpMan;
+/
+
+-- Scenario 3: Account Operations Package
+CREATE OR REPLACE PACKAGE AccOps AS
+    PROCEDURE OpenAcc(id IN NUMBER, cid IN NUMBER, type IN VARCHAR2, bal IN NUMBER);
+    PROCEDURE CloseAcc(id IN NUMBER);
+    FUNCTION TotBal(cid IN NUMBER) RETURN NUMBER;
+END AccOps;
+/
+
+CREATE OR REPLACE PACKAGE BODY AccOps AS
+    PROCEDURE OpenAcc(id IN NUMBER, cid IN NUMBER, type IN VARCHAR2, bal IN NUMBER) IS
+        e_dup EXCEPTION;
+        PRAGMA EXCEPTION_INIT(e_dup, -1);
+    BEGIN
+        INSERT INTO Accounts (AccountID, CustomerID, AccountType, Balance, LastModified)
+        VALUES (id, cid, type, bal, SYSDATE);
+        COMMIT;
+    EXCEPTION
+        WHEN e_dup THEN ROLLBACK;
+        WHEN OTHERS THEN ROLLBACK;
+    END;
+
+    PROCEDURE CloseAcc(id IN NUMBER) IS
+        rows NUMBER;
+    BEGIN
+        DELETE FROM Accounts WHERE AccountID = id;
+        rows := SQL%ROWCOUNT;
+        IF rows = 0 THEN RAISE NO_DATA_FOUND; END IF;
+        COMMIT;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN ROLLBACK;
+        WHEN OTHERS THEN ROLLBACK;
+    END;
+
+    FUNCTION TotBal(cid IN NUMBER) RETURN NUMBER IS
+        tot NUMBER;
+    BEGIN
+        SELECT SUM(Balance) INTO tot FROM Accounts WHERE CustomerID = cid;
+        IF tot IS NULL THEN RETURN 0; END IF;
+        RETURN tot;
+    EXCEPTION
+        WHEN OTHERS THEN RETURN NULL;
+    END;
+END AccOps;
+/
